@@ -9,13 +9,6 @@ describe 'Kirk::Server' do
     last_response.should have_body("Hello Rack")
   end
 
-  it "handles cookie headers properly" do
-    start lambda { |env| [ 200, { 'Cookie' => "a=b\nc=d" }, [ "Hello Cookie" ] ] }
-
-    get '/'
-    last_response.headers["Cookie"].should == "a=b, c=d"
-  end
-
   it "runs the server" do
     start hello_world_path('config.ru')
 
@@ -337,5 +330,31 @@ describe 'Kirk::Server' do
 
     get '/'
     last_response.body.should_not =~ /FOO/
+  end
+
+  it "handles cookie headers properly" do
+    start lambda { |env| [ 200, { 'Cookie' => "a=b\nc=d" }, [ "Hello Cookie" ] ] }
+
+    get '/'
+    last_response.headers["Cookie"].should == "a=b, c=d"
+  end
+
+  it "exposes async API to handle" do
+    start lambda { |env|
+      async = env['kirk.async'].start!
+
+      Thread.new do
+        sleep(0.1) # be sure that response is delayed
+        async.respond(200, {'Content-Type' => 'text/html'}, nil)
+        async.respond(nil, nil, "Hello\n")
+        async.respond(nil, nil, "World\n")
+        async.respond(nil, nil, nil) # Finish the request
+      end.run
+
+      nil
+    }
+
+    get '/'
+    last_response.body.should == "Hello\nWorld\n"
   end
 end

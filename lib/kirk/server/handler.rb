@@ -59,7 +59,29 @@ module Kirk
         inst
       end
 
+      attr_accessor :async
+      alias :async? :async
+
+      def async!
+        @async = true
+      end
+
       attr_accessor :app
+
+      def set_headers(response, headers)
+        headers.each do |header, value|
+          case header
+          when CONTENT_TYPE_RESP
+            response.set_content_type(value)
+          when CONTENT_LENGTH_RESP
+            response.set_content_length(value.to_i)
+          else
+            value.split("\n").each do |v|
+              response.add_header(header, v)
+            end
+          end
+        end
+      end
 
       def handle(target, base_request, request, response)
         begin
@@ -110,30 +132,25 @@ module Kirk
           input = InputStream.new(input)
           env[RACK_INPUT] = input
 
+          env['kirk.async'] = Async.new(self, request, response)
+
           # Dispatch the request
           status, headers, body = @app.call(env)
 
-          response.set_status(status.to_i)
+          if async?
+            env['kirk.async'].suspend(response)
+          else
+            response.set_status(status.to_i)
 
-          headers.each do |header, value|
-            case header
-            when CONTENT_TYPE_RESP
-              response.set_content_type(value)
-            when CONTENT_LENGTH_RESP
-              response.set_content_length(value.to_i)
-            else
-              value.split("\n").each do |v|
-                response.add_header(header, v)
-              end
+            set_headers(response, headers)
+
+            buffer = response.get_output_stream
+            body.each do |s|
+              buffer.write(s.to_java_bytes)
             end
-          end
 
-          buffer = response.get_output_stream
-          body.each do |s|
-            buffer.write(s.to_java_bytes)
+            body.close if body.respond_to?(:close)
           end
-
-          body.close if body.respond_to?(:close)
         ensure
           input.recycle if input.respond_to?(:recycle)
           request.set_handled(true)

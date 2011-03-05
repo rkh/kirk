@@ -26,6 +26,8 @@ module Kirk
     java_import "org.eclipse.jetty.util.log.Log"
     java_import "org.eclipse.jetty.util.log.JavaUtilLog"
 
+    java_import "org.eclipse.jetty.continuation.ContinuationSupport"
+
     Log.set_log Jetty::JavaUtilLog.new unless Kirk.sub_process?
   end
 end
