@@ -32,6 +32,8 @@ Here is a brief highlight of some of the features available.
 * Run on the JVM: I, for one, am a fan of having a predictable GC, a JIT
   compiler, and other goodness.
 
+* Async API that lets you handle asynchronous responses with ease
+
 ### Getting Started
 
 To take advantage of the zero downtime redeploy features, you will need to
@@ -93,6 +95,25 @@ Use your OS features. For example, write an upstart script or use
 ### Logging to a file or syslog
 
 Kirk just dumps logs to stdout, so just pipe Kirk to `logger`.
+
+### Async API
+
+If you want to send asynchronous responses, you can use async API:
+
+    class MyRackApp
+      def call(env)
+        async = env['kirk.async'].start!
+
+        LongTask.run do
+          async.respond(200, { 'Content-Type' => 'text/html' }, nil)
+          async.respond(nil, nil, "Hello\n")
+          async.respond(nil, nil, "World\n")
+          async.respond(nil, nil, nil) # Finish the request
+        end
+
+        nil
+      end
+    end
 
 ### Kirk::Client - For all your HTTP needs
 
@@ -157,6 +178,15 @@ Now, you can start making the requests.
       g.get  'http://www.amazon.com', nil, nil, 'X-Custom-Header' => 'Blah'
 
       # The group will block until all of the requests are completed.
+    end
+
+You can also turn blocking off:
+    MY_CLIENT.group :block => false do |g|
+      g.get  'http://www.google.com',  MyHandler.new
+      g.post 'http://www.twitter.com', MyHandler.new, "Some request body"
+      g.get  'http://www.amazon.com', nil, nil, 'X-Custom-Header' => 'Blah'
+
+      # group will return immediatly
     end
 
 Hopefully that is enough to get started.
