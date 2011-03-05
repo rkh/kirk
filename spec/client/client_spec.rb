@@ -139,9 +139,24 @@ describe 'Kirk::Client' do
       end
     end
 
-    start(lambda do |env|
-      [ 200, { 'Content-Type' => 'text/plain' }, [ "a" * 10000 ] ]
-    end)
+    class Body
+      def initialize(output)
+        @output = output
+      end
+
+      def body
+        ['a', 'b']
+      end
+
+      def each
+        body.each do |e|
+          yield e
+          @output.flush
+        end
+      end
+    end
+
+    start(lambda { |env| [200, {}, Body.new(env['kirk.output'])] })
 
     @buffer = []
 
@@ -151,7 +166,7 @@ describe 'Kirk::Client' do
 
     sleep(0.05)
     group.should have(1).responses
-    @buffer.length.should be > 1
+    @buffer.should == ["a", "b"]
   end
 
   context "callbacks" do

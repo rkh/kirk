@@ -344,7 +344,7 @@ describe 'Kirk::Server' do
       async = env['kirk.async'].start!
 
       Thread.new do
-        sleep(0.1) # be sure that response is delayed
+        sleep(0.05) # be sure that response is delayed
         async.respond(200, {'Content-Type' => 'text/html'}, nil)
         async.respond(nil, nil, "Hello\n")
         async.respond(nil, nil, "World\n")

@@ -134,6 +134,9 @@ module Kirk
 
           env['kirk.async'] = Async.new(self, request, response)
 
+          buffer = response.get_output_stream
+          env['kirk.output'] = buffer
+
           # Dispatch the request
           status, headers, body = @app.call(env)
 
@@ -144,7 +147,6 @@ module Kirk
 
             set_headers(response, headers)
 
-            buffer = response.get_output_stream
             body.each do |s|
               buffer.write(s.to_java_bytes)
             end
