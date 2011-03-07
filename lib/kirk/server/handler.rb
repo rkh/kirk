@@ -135,7 +135,8 @@ module Kirk
           env['kirk.async'] = Async.new(self, request, response)
 
           buffer = response.get_output_stream
-          env['kirk.output'] = buffer
+          env['kirk.output']  = buffer
+          env['kirk.request'] = request
 
           # Dispatch the request
           status, headers, body = @app.call(env)

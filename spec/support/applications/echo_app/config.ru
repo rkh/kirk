@@ -13,5 +13,9 @@ run lambda { |env|
     obj['rack.errors'] = true
   end
 
+  obj.delete('kirk.output')
+  obj.delete('kirk.async')
+  obj.delete('kirk.request')
+
   [ 200, { 'Content-Type' => 'application/x-ruby-object' }, [ Marshal.dump(obj) ] ]
 }

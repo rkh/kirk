@@ -1,6 +1,14 @@
 require 'spec_helper'
 
 describe 'Kirk::Server' do
+
+  it "passes kirk.request to add access to original request" do
+    start lambda { |env| [ 200, {'Content-Type' => 'text/plain' }, [ env['kirk.request'].class.name ] ] }
+
+    get '/'
+    last_response.should have_body("Java::OrgEclipseJettyServer::Request")
+  end
+
   it "runs a simple rack application" do
     start lambda { |env| [ 200, { 'Content-Type' => "text/plain" }, [ "Hello Rack" ] ] }
 
