@@ -30,13 +30,23 @@ module SpecHelpers
 
   {
     'request_method' => 'REQUEST_METHOD',
-    'body'           => 'rack.input'
+    'body'           => 'rack.input',
+    'query_string'   => 'QUERY_STRING',
+    'path'           => 'PATH_INFO'
   }.each do |k, v|
     RSpec::Matchers.define :"receive_#{k}" do |val|
       match do |response|
         env = Marshal.load(response.body)
         env[v] == val
       end
+    end
+  end
+
+  RSpec::Matchers.define :"receive_header" do |name, value|
+    match do |response|
+      env = Marshal.load(response.body)
+      key = "HTTP_#{name.gsub('-', '_').upcase}"
+      env[key] && env[key] == value
     end
   end
 end

@@ -6,15 +6,14 @@ module SpecHelpers
     @server.start
   end
 
-  def start(app = nil, &blk)
+  def start(app = nil, options = {}, &blk)
     @server.stop if @server
 
     if app.respond_to?(:call)
 
-      @server = Kirk::Server.start(app, :log_level => :warning)
+      @server = Kirk::Server.start(app, {:log_level => :warning}.merge(options))
 
     else
-
       blk ||= lambda do
         log :level => :warning
 
@@ -25,7 +24,6 @@ module SpecHelpers
 
       @server = Kirk::Server.build(&blk)
       @server.start
-
     end
   end
 

@@ -10,6 +10,7 @@ module Kirk
     autoload :InputStream,        'kirk/server/input_stream'
     autoload :RedeployClient,     'kirk/server/redeploy_client'
     autoload :Async,              'kirk/server/async'
+    autoload :Middleware,         'kirk/server/middleware'
 
     def self.build(file = nil, &blk)
       root    = File.dirname(file) if file
