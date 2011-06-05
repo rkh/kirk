@@ -1,5 +1,4 @@
 require 'kirk'
-require 'rack'
 
 module Rack
   module Handler

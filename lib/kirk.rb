@@ -1,3 +1,5 @@
+require 'rack'
+
 module Kirk
   # Make sure that the version of JRuby is new enough
   unless (JRUBY_VERSION.split('.')[0..2].map(&:to_i) <=> [1, 6, 0]) >= 0
